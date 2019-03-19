@@ -1,8 +1,11 @@
 set +e
 
-MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
-IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
-VERSION=${VERSION_ARRAY[1]}
+MINICONDA_VERSION=Miniconda3-latest
+if [ -f conda-runtime.txt ]; then
+    MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
+	IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
+	VERSION=${VERSION_ARRAY[1]}
+fi
 
 # The location of the pre-compiled python binary.
 VENDORED_MINICONDA="${VENDOR_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh"
@@ -22,7 +25,10 @@ if [ ! -d /app/.heroku/miniconda ]; then
 fi
 
 echo "nomkl" > $HOME/.heroku/miniconda/conda-meta/pinned
-echo "conda ==${VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
+# Pin the conda version if proper version, not `latest` or anything else
+if [[ $VERSION =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+	echo "conda ==${VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
+fi
 echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
 conda install nomkl --yes | indent
 
