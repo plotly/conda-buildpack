@@ -7,6 +7,8 @@ if [ -f conda-runtime.txt ]; then
 	VERSION=${VERSION_ARRAY[1]}
 fi
 
+MINICONDA_VERBOSITY=-v
+
 # The location of the pre-compiled python binary.
 VENDORED_MINICONDA="${VENDOR_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh"
 
@@ -21,7 +23,7 @@ if [ ! -d /app/.heroku/miniconda ]; then
         cp .condarc /app/.heroku/miniconda
     fi
 
-    conda install pip --yes | indent
+    conda install $MINICONDA_VERBOSITY pip --yes | indent
 fi
 
 echo "nomkl" > $HOME/.heroku/miniconda/conda-meta/pinned
@@ -30,12 +32,12 @@ if [[ $VERSION =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
 	echo "conda ==${VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
 fi
 echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
-conda install nomkl --yes | indent
+conda install $MINICONDA_VERBOSITY nomkl --yes | indent
 
 
 if [ -f conda-requirements.txt ]; then
     puts-step "Installing dependencies using Conda"
-    conda install --file conda-requirements.txt --yes | indent
+    conda install $MINICONDA_VERBOSITY --file conda-requirements.txt --yes | indent
 fi
 
 if [ -f requirements.txt ]; then
