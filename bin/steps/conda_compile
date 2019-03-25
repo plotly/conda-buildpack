@@ -1,11 +1,9 @@
+#!/usr/bin/env bash
 set +e
 
-MINICONDA_VERSION=Miniconda3-latest
-if [ -f conda-runtime.txt ]; then
-    MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
-	IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
-	VERSION=${VERSION_ARRAY[1]}
-fi
+MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
+IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
+VERSION=${VERSION_ARRAY[1]}
 
 MINICONDA_VERBOSITY=-v
 
@@ -36,10 +34,8 @@ echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
 conda install $MINICONDA_VERBOSITY --no-update-dependencies nomkl --yes | indent
 
 
-if [ -f conda-requirements.txt ]; then
-    puts-step "Installing dependencies using Conda"
-    conda install $MINICONDA_VERBOSITY --no-update-dependencies --file conda-requirements.txt --yes | indent
-fi
+puts-step "Installing dependencies using Conda"
+conda install $MINICONDA_VERBOSITY --no-update-dependencies --file conda-requirements.txt --yes | indent
 
 if [ -f requirements.txt ]; then
     puts-step "Installing dependencies using Pip"
