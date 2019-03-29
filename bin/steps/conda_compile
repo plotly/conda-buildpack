@@ -12,7 +12,9 @@ VENDORED_MINICONDA="${VENDOR_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh
 
 if [ ! -d /app/.heroku/miniconda ]; then
     puts-step "Preparing Python/Miniconda Environment"
-    curl -Ov $VENDORED_MINICONDA
+    if ! curl -Ofv $VENDORED_MINICONDA ; then
+        exit 1
+    fi
     bash ${MINICONDA_VERSION}-Linux-x86_64.sh  -p /app/.heroku/miniconda/ -b | indent
     rm -fr ${MINICONDA_VERSION}-Linux-x86_64.sh
 
