@@ -12,5 +12,5 @@ To control what binary packages are installed by conda, supply a `conda-requirem
 
 #### pip requirements
 
-Like when using the standard buildpack for python from Heroku, you can also still supply a `requirements.txt` file for [pip](https://github.com/pypa/pip) to process.  In this way, you can install binary packages via conda for everything you can and still use pip for anything you can't.
+Like when using the standard `buildpack` for python from Heroku, you can also still supply a `requirements.txt` file for [pip](https://github.com/pypa/pip) to process. This allows you to install binary packages via `conda` when possible and still use pip for packages that are not available via `conda`.
 
