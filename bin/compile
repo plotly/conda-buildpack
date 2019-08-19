@@ -31,14 +31,14 @@ unset GIT_DIR PYTHONHOME PYTHONPATH LD_LIBRARY_PATH LIBRARY_PATH
 export BUILD_DIR CACHE_DIR BIN_DIR PROFILE_PATH
 
 # Set the Buildpack's internet target for downloading Miniconda distributions.
-# The user can provide BUILDPACK_COMMON_URL to specify a custom target.
+# The user can provide BUILDPACK_CONTINUUM_URL to specify a custom target.
 # Note: this is designed for non-Heroku use, as it does not use the user-provided
 # environment variable mechanism (the ENV_DIR).
-VENDOR_URL="https://repo.continuum.io"
-if [[ -n ${BUILDPACK_COMMON_URL:-} ]]; then
-    VENDOR_URL="$BUILDPACK_COMMON_URL"
+CONTINUUM_URL="https://repo.continuum.io"
+if [[ -n ${BUILDPACK_CONTINUUM_URL:-} ]]; then
+    CONTINUUM_URL="$BUILDPACK_CONTINUUM_URL"
 fi
-export VENDOR_URL
+export CONTINUUM_URL
 
 # Syntax sugar.
 source $BIN_DIR/utils
