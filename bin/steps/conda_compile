@@ -15,6 +15,7 @@ if [ ! -d /app/.heroku/miniconda ]; then
     if ! curl -Ofv $VENDORED_MINICONDA ; then
         exit 1
     fi
+
     bash ${MINICONDA_VERSION}-Linux-x86_64.sh  -p /app/.heroku/miniconda/ -b | indent
     rm -fr ${MINICONDA_VERSION}-Linux-x86_64.sh
 
@@ -23,16 +24,18 @@ if [ ! -d /app/.heroku/miniconda ]; then
         cp .condarc /app/.heroku/miniconda
     fi
 
+    echo "nomkl" > $HOME/.heroku/miniconda/conda-meta/pinned
+    echo "python <3.8.0" >> $HOME/.heroku/miniconda/conda-meta/pinned
+    # Pin the conda version if proper version, not `latest` or anything else
+    if [[ $VERSION =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+        echo "conda ==${VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
+    fi
+    echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
+
     conda config --set auto_update_conda False
     conda install $MINICONDA_VERBOSITY --no-update-dependencies pip --yes | indent
 fi
 
-echo "nomkl" > $HOME/.heroku/miniconda/conda-meta/pinned
-# Pin the conda version if proper version, not `latest` or anything else
-if [[ $VERSION =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
-	echo "conda ==${VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
-fi
-echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
 conda install $MINICONDA_VERBOSITY --no-update-dependencies nomkl --yes | indent
 
 
