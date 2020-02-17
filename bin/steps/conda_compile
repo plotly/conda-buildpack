@@ -33,6 +33,9 @@ if [ ! -d /app/.heroku/miniconda ]; then
     echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
 
     conda config --set auto_update_conda False
+    
+    PYTHON_VERSION="$(cat conda-requirements.txt | grep -i python= || true)"
+    [[ -n "$PYTHON_VERSION" ]] && conda install $MINICONDA_VERBOSITY --no-update-deps $PYTHON_VERSION --yes | INDENT
     conda install $MINICONDA_VERBOSITY --no-update-deps pip --yes | indent
 fi
 
