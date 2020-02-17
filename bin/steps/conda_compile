@@ -47,7 +47,7 @@ if [ ! -d /app/.heroku/miniconda ]; then
 else
     INSTALLED_MINICONDA_VERSION=$(cat /app/.heroku/miniconda/VERSION 2>/dev/null || true)
     if [[ "$INSTALLED_MINICONDA_VERSION" != "$MINICONDA_VERSION" ]]; then
-        puts-step "Detected conflicting Miniconda=$MINICONDA_VERSION, removing"
+        puts-step "Detected conflicting Miniconda=$INSTALLED_MINICONDA_VERSION, removing"
         rm -rf /app/.heroku/miniconda
         install-miniconda "$CONTINUUM_URL" "$MINICONDA_VERSION" "$VERSION"
     fi
