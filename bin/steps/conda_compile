@@ -33,14 +33,14 @@ if [ ! -d /app/.heroku/miniconda ]; then
     echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
 
     conda config --set auto_update_conda False
-    conda install $MINICONDA_VERBOSITY --no-update-dependencies pip --yes | indent
+    conda install $MINICONDA_VERBOSITY --no-update-deps pip --yes | indent
 fi
 
-conda install $MINICONDA_VERBOSITY --no-update-dependencies nomkl --yes | indent
+conda install $MINICONDA_VERBOSITY --no-update-deps nomkl --yes | indent
 
 
 puts-step "Installing dependencies using Conda"
-conda install $MINICONDA_VERBOSITY --no-update-dependencies --file conda-requirements.txt --yes | indent
+conda install $MINICONDA_VERBOSITY --no-update-deps --file conda-requirements.txt --yes | indent
 
 if [ -f requirements.txt ]; then
     puts-step "Installing dependencies using Pip"
