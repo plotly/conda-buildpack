@@ -1,23 +1,22 @@
 #!/usr/bin/env bash
 set +e
 
-MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
-IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
-VERSION=${VERSION_ARRAY[1]}
+install-miniconda() {
+    local CONTINUUM_URL="$1" MINICONDA_VERSION="$2" VERSION="$3"
 
-MINICONDA_VERBOSITY=-v
+    # The location of the pre-compiled python binary.
+    VENDORED_MINICONDA="${CONTINUUM_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh"
+    MINICONDA_VERBOSITY=-v
 
-# The location of the pre-compiled python binary.
-VENDORED_MINICONDA="${CONTINUUM_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh"
-
-if [ ! -d /app/.heroku/miniconda ]; then
-    puts-step "Preparing Python/Miniconda Environment"
+    puts-step "Preparing Miniconda=$MINICONDA_VERSION Environment"
     if ! curl -Ofv $VENDORED_MINICONDA ; then
         exit 1
     fi
 
     bash ${MINICONDA_VERSION}-Linux-x86_64.sh  -p /app/.heroku/miniconda/ -b | indent
     rm -fr ${MINICONDA_VERSION}-Linux-x86_64.sh
+
+    echo "$MINICONDA_VERSION" > /app/.heroku/miniconda/VERSION
 
     if [ -f .condarc ]; then
         puts-step "Copying condarc file to miniconda directory"
@@ -35,12 +34,26 @@ if [ ! -d /app/.heroku/miniconda ]; then
     conda config --set auto_update_conda False
     
     PYTHON_VERSION="$(cat conda-requirements.txt | grep -i python= || true)"
-    [[ -n "$PYTHON_VERSION" ]] && conda install $MINICONDA_VERBOSITY --no-update-deps $PYTHON_VERSION --yes | INDENT
+    [ -n "$PYTHON_VERSION" ] && conda install $MINICONDA_VERBOSITY --no-update-deps $PYTHON_VERSION --yes | INDENT
     conda install $MINICONDA_VERBOSITY --no-update-deps pip --yes | indent
+}
+
+MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
+IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
+VERSION=${VERSION_ARRAY[1]}
+
+if [ ! -d /app/.heroku/miniconda ]; then
+    install-miniconda "$CONTINUUM_URL" "$MINICONDA_VERSION" "$VERSION"
+else
+    INSTALLED_MINICONDA_VERSION=$(cat /app/.heroku/miniconda/VERSION)
+    if [[ "$INSTALLED_MINICONDA_VERSION" != "$MINICONDA_VERSION" ]]; then
+        puts-step "Detected conflicting Miniconda=$MINICONDA_VERSION, removing"
+        rm -rf /app/.heroku/miniconda
+        install-miniconda "$CONTINUUM_URL" "$MINICONDA_VERSION" "$VERSION"
+    fi
 fi
 
 conda install $MINICONDA_VERBOSITY --no-update-deps nomkl --yes | indent
-
 
 puts-step "Installing dependencies using Conda"
 conda install $MINICONDA_VERBOSITY --no-update-deps --file conda-requirements.txt --yes | indent
