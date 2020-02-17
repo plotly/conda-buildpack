@@ -34,7 +34,7 @@ install-miniconda() {
     conda config --set auto_update_conda False
     
     PYTHON_VERSION="$(cat conda-requirements.txt | grep -i python= || true)"
-    [ -n "$PYTHON_VERSION" ] && conda install $MINICONDA_VERBOSITY --no-update-deps $PYTHON_VERSION --yes | INDENT
+    [ -n "$PYTHON_VERSION" ] && conda install $MINICONDA_VERBOSITY --no-update-deps $PYTHON_VERSION --yes | indent
     conda install $MINICONDA_VERBOSITY --no-update-deps pip --yes | indent
 }
 
