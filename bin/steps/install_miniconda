@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+install-miniconda() {
+  declare CONTINUUM_URL="$1" MINICONDA_VERSION="$2"
+
+  # The location of the pre-compiled python binary.
+  VENDORED_MINICONDA="${CONTINUUM_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh"
+
+  puts-step "Preparing Python/Miniconda Environment"
+  if ! curl -Ofv $VENDORED_MINICONDA ; then
+    exit 1
+  fi
+
+  bash ${MINICONDA_VERSION}-Linux-x86_64.sh  -p /app/.heroku/miniconda/ -b | indent
+  rm -fr ${MINICONDA_VERSION}-Linux-x86_64.sh
+
+  echo "$MINICONDA_VERSION" > /app/.heroku/miniconda/VERSION
+}
+
+if [[ ! -d /app/.heroku/miniconda ]]; then
+  install-miniconda "$CONTINUUM_URL" "$MINICONDA_VERSION"
+else
+  INSTALLED_MINICONDA_VERSION=$(cat /app/.heroku/miniconda/VERSION 2>/dev/null || true)
+  if [[ "$INSTALLED_MINICONDA_VERSION" != "$MINICONDA_VERSION" ]]; then
+    puts-step "Detected conflicting Miniconda=$INSTALLED_MINICONDA_VERSION, removing"
+    rm -rf /app/.heroku/miniconda
+    install-miniconda "$CONTINUUM_URL" "$MINICONDA_VERSION"
+  fi
+fi

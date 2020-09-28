@@ -66,6 +66,23 @@ export LANG=en_US.UTF-8
 # Switch to the repo's context.
 cd $BUILD_DIR
 
+# Setup conda and miniconda versions
+MINICONDA_VERSION=Miniconda3-4.5.12
+if [[ -f conda-runtime.txt ]]; then
+  MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
+fi
+IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
+CONDA_VERSION=${VERSION_ARRAY[1]}
+
+MINICONDA_VERBOSITY=-v
+if [[ -n "$BUILDPACK_XTRACE" ]]; then
+  MINICONDA_VERBOSITY=-vv
+fi
+
+export CONDA_VERSION
+export MINICONDA_VERSION
+export MINICONDA_VERBOSITY
+
 # Experimental pre_compile hook.
 source $BIN_DIR/steps/hooks/pre_compile
 
@@ -86,6 +103,7 @@ set -e
 mkdir -p $(dirname $PROFILE_PATH)
 
 # Actuall do the conda steps.
+source $BIN_DIR/steps/install_miniconda
 source $BIN_DIR/steps/conda_compile
 
 # ### Finalize
@@ -111,3 +129,5 @@ source $BIN_DIR/steps/hooks/post_compile
 
 deep-mv $BUILD_DIR $ORIG_BUILD_DIR
 deep-mv $TMP_APP_DIR $APP_DIR
+
+puts-step "Conda build complete"

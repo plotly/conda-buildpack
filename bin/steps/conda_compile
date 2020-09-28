@@ -1,50 +1,30 @@
 #!/usr/bin/env bash
-set +e
+set -eo pipefail
 
-MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
-IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
-VERSION=${VERSION_ARRAY[1]}
-
-MINICONDA_VERBOSITY=-v
-
-# The location of the pre-compiled python binary.
-VENDORED_MINICONDA="${CONTINUUM_URL}/miniconda/${MINICONDA_VERSION}-Linux-x86_64.sh"
-
-if [ ! -d /app/.heroku/miniconda ]; then
-    puts-step "Preparing Python/Miniconda Environment"
-    if ! curl -Ofv $VENDORED_MINICONDA ; then
-        exit 1
-    fi
-
-    bash ${MINICONDA_VERSION}-Linux-x86_64.sh  -p /app/.heroku/miniconda/ -b | indent
-    rm -fr ${MINICONDA_VERSION}-Linux-x86_64.sh
-
-    if [ -f .condarc ]; then
-        puts-step "Copying condarc file to miniconda directory"
-        cp .condarc /app/.heroku/miniconda
-    fi
-
-    echo "nomkl" > $HOME/.heroku/miniconda/conda-meta/pinned
-    echo "python <3.8.0" >> $HOME/.heroku/miniconda/conda-meta/pinned
-    # Pin the conda version if proper version, not `latest` or anything else
-    if [[ $VERSION =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
-        echo "conda ==${VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
-    fi
-    echo "added pinned file in $HOME/.heroku/miniconda/conda-meta/pinned"
-
-    conda config --set auto_update_conda False
-    conda install $MINICONDA_VERBOSITY --no-update-deps pip --yes | indent
+puts-step "Initializing .condarc"
+touch /app/.heroku/miniconda/.condarc
+if [[ -f .condarc ]]; then
+  cp -f .condarc /app/.heroku/miniconda
 fi
 
+echo "nomkl" > $HOME/.heroku/miniconda/conda-meta/pinned
+echo "python <3.8.0" >> $HOME/.heroku/miniconda/conda-meta/pinned
+# Pin the conda version if proper version, not `latest` or anything else
+if [[ $CONDA_VERSION =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+  echo "conda ==${CONDA_VERSION}" >> $HOME/.heroku/miniconda/conda-meta/pinned
+fi
+
+conda config --set auto_update_conda False
+conda install $MINICONDA_VERBOSITY --no-update-deps pip --yes | indent
 conda install $MINICONDA_VERBOSITY --no-update-deps nomkl --yes | indent
 
 
 puts-step "Installing dependencies using Conda"
 conda install $MINICONDA_VERBOSITY --no-update-deps --file conda-requirements.txt --yes | indent
 
-if [ -f requirements.txt ]; then
-    puts-step "Installing dependencies using Pip"
-    pip install -r requirements.txt  --exists-action=w | indent
+if [[ -f requirements.txt ]]; then
+  puts-step "Installing dependencies using Pip"
+  pip install -r requirements.txt  --exists-action=w | indent
 fi
 
 # Clean up the installation environment .
