@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set +e
+set -eo pipefail
 
 MINICONDA_VERSION=$(cat conda-runtime.txt | tr -d "\n")
 IFS='-' read -r -a VERSION_ARRAY <<< ${MINICONDA_VERSION}
